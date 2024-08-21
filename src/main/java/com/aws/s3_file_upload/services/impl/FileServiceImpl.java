@@ -1,27 +1,28 @@
 package com.aws.s3_file_upload.services.impl;
 
 import com.aws.s3_file_upload.ExceptionHandling.ImageUploadException;
-import com.aws.s3_file_upload.services.FileUploader;
+import com.aws.s3_file_upload.models.FileInfo;
+import com.aws.s3_file_upload.services.FileService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
-import software.amazon.awssdk.services.s3.model.GetObjectRequest;
-import software.amazon.awssdk.services.s3.model.PutObjectRequest;
+import software.amazon.awssdk.services.s3.model.*;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 import software.amazon.awssdk.services.s3.presigner.model.GetObjectPresignRequest;
 
 import java.io.IOException;
+import java.net.URL;
 import java.time.Duration;
-import java.util.NoSuchElementException;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
-public class FileUploaderImpl implements FileUploader {
+public class FileServiceImpl implements FileService {
     @Value("${aws.bucket-name}")
     private String bucketName;
 
@@ -44,7 +45,26 @@ public class FileUploaderImpl implements FileUploader {
         }
     }
 
+    @Override
+    public List<FileInfo> listAllFiles() {
+        ListObjectsV2Request listV2Request = ListObjectsV2Request.builder()
+                .bucket(bucketName)
+                .build();
+        var response = s3Client.listObjectsV2(listV2Request);
+        return response.contents().stream().map(s3Object -> new FileInfo(s3Object.key(), preSignedUrl(s3Object.key()))).toList();
+
+    }
+
+    @Override
+    public FileInfo fetchFile(String fileName) {
+        String url = preSignedUrl(fileName);
+        return new FileInfo(fileName, url);
+    }
+
     private String preSignedUrl(String fileName){
+        if(fileName == null){
+            throw new ImageUploadException("No filename");
+        }
         try {
             GetObjectRequest getObjectRequest = GetObjectRequest.builder()
                     .bucket(bucketName)

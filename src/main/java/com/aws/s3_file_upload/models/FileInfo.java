@@ -1,15 +1,15 @@
-package com.aws.s3_file_upload.ExceptionHandling;
+package com.aws.s3_file_upload.models;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-@Builder
+@Data
 @AllArgsConstructor
 @NoArgsConstructor
-@Data
-public class ErrorResponse {
-    private String message;
-    private boolean success;
+@Builder
+public class FileInfo {
+    private String filename;
+    private String url;
 }

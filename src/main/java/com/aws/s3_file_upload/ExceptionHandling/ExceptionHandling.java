@@ -9,7 +9,7 @@ import java.util.NoSuchElementException;
 
 @ControllerAdvice
 public class ExceptionHandling {
-    @ExceptionHandler
+    @ExceptionHandler(ImageUploadException.class)
     public ResponseEntity<ErrorResponse> imageUploadException(ImageUploadException exc) {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(ErrorResponse.builder().message(exc.getMessage())
@@ -17,11 +17,10 @@ public class ExceptionHandling {
                         .build());
     }
 
-    @ExceptionHandler
+    @ExceptionHandler(NoSuchElementException.class)
     public ResponseEntity<ErrorResponse> noSuchElementException(NoSuchElementException exc) {
-        System.out.println("NoSuchElementException ----");
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ErrorResponse.builder()
-                .message("Improper File upload")
+                .message("Improper or no File requested for upload")
                 .success(false)
                 .build());
     }
